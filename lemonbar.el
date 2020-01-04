@@ -128,13 +128,14 @@ lemonbar.")
                  ((and (pred symbolp)
                        (pred boundp)) (symbol-value item))
                  (`(:eval ,list) (eval list))
-                 ((pred listp) (eval item))))
+                 ((pred listp) (eval item))
+                 ((pred functionp) (funcall item))))
              lemonbar-output-template
              lemonbar-separator))
 
 (defcustom lemonbar-output-template nil
   "Output template of lemonbar."
-  :type '(repeat (choice string variable sexp))
+  :type '(repeat (choice string variable sexp function))
   :group 'lemonbar)
 
 ;;;###autoload
