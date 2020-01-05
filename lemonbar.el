@@ -32,11 +32,7 @@
 ;;; Code:
 
 (require 'timer)
-(require 'comint)
 (require 'cl-lib)
-
-(defconst lemonbar-buffer "*lemonbar*"
-  "Name of the buffer used by lemonbar.")
 
 (defcustom lemonbar-options nil
   "List of command line options used in the lemonbar."
@@ -64,28 +60,31 @@ lemonbar.")
 (defvar lemonbar-started nil
   "Non-nil if lemonbar has started.")
 
+(defvar lemonbar-process nil
+  "The lemonbar process.")
+
 (defun lemonbar-start ()
   "Start a lemonbar."
   (interactive)
   (lemonbar-kill)
-  (when-let ((buf (apply #'make-comint-in-buffer "lemonbar" lemonbar-buffer
-                         "lemonbar" nil lemonbar-options)))
-    (set-process-query-on-exit-flag (get-buffer-process buf) nil))
-  (setq lemonbar-started t)
+  (setq lemonbar-process (make-process
+                          :name "lemonbar"
+                          :buffer nil
+                          :command (push "lemonbar" lemonbar-options)
+                          :noquery nil)
+        lemonbar-started t)
   (run-hooks 'lemonbar-start-hook)
   (lemonbar-update))
 
 (defun lemonbar-kill ()
   "Kill the process of lemonbar and return non-nil if it is running."
   (interactive)
-  (when-let ((proc (get-buffer-process lemonbar-buffer)))
-    (when (process-live-p proc)
-      (interrupt-process proc)
-      (sleep-for 0.05)
-      (kill-buffer lemonbar-buffer)
-      (run-hooks 'lemonbar-kill-hook)
-      (setq lemonbar-started nil)
-      t)))
+  (when (process-live-p lemonbar-process)
+    (interrupt-process lemonbar-process)
+    (sleep-for 0.05)
+    (run-hooks 'lemonbar-kill-hook)
+    (setq lemonbar-started nil)
+    t))
 
 (defvar lemonbar-timer nil
   "Timer object to update the lemonbar periodically.")
@@ -104,8 +103,7 @@ lemonbar.")
 
 (defun lemonbar--log (string)
   "Send STRING to the lemonbar."
-  (when-let ((proc (get-buffer-process lemonbar-buffer)))
-    (comint-send-string proc string)))
+  (process-send-string lemonbar-process string))
 
 (defun lemonbar-update (&optional skip-hooks)
   "Update the content of the lemonbar. "
@@ -153,9 +151,6 @@ started, because it checks if the lemonbar has started."
 
 (defconst lemonbar-align-center "%{c}"
   "Align the following content to the center.")
-
-(with-eval-after-load 'desktop
-  (add-hook 'desktop-clear-preserve-buffers "\\*lemonbar\\*"))
 
 (provide 'lemonbar)
 ;;; lemonbar.el ends here
