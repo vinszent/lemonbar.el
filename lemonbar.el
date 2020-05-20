@@ -70,7 +70,7 @@ lemonbar.")
   (setq lemonbar-process (make-process
                           :name "lemonbar"
                           :buffer nil
-                          :command (push "lemonbar" lemonbar-options)
+                          :command (cons "lemonbar" lemonbar-options)
                           :noquery nil)
         lemonbar-started t)
   (run-hooks 'lemonbar-start-hook)
