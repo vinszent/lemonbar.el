@@ -80,7 +80,7 @@ lemonbar.")
   "Kill the process of lemonbar and return non-nil if it is running."
   (interactive)
   (when (process-live-p lemonbar-process)
-    (interrupt-process lemonbar-process)
+    (quit-process lemonbar-process)
     (sleep-for 0.05)
     (run-hooks 'lemonbar-kill-hook)
     (setq lemonbar-started nil)
